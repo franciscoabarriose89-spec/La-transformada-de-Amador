@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RT-Core Millennium Suite - Exocortex</title>
+  <style>
+    html,body{height:100%;margin:0;background:#000;color:#fff}
+    canvas{display:block;width:100%;height:100%}
+    #overlay{position:fixed;left:8px;top:8px;color:#0f0;font-family:monospace;font-size:12px}
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="overlay">RT-Core Exocortex · 60fps target · Schumann 7.83Hz</div>
+
+  <script>
+    // Kählerian/NS parameters (documentation-level): gamma must be 0.000
+    const GAMMA = 0.000; // entropía estocástica cero
+    const SCHUMANN_HZ = 7.83;
+
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'lighter'; // iluminación de plasma puro
+
+    let W = canvas.width = innerWidth;
+    let H = canvas.height = innerHeight;
+    addEventListener('resize', ()=>{ W=canvas.width=innerWidth; H=canvas.height=innerHeight; });
+
+    // Simple 3D point and projection helpers
+    function rotateY(p, a){
+      const s=Math.sin(a), c=Math.cos(a); return {x:p.x*c - p.z*s, y:p.y, z:p.x*s + p.z*c};
+    }
+    function rotateX(p, a){
+      const s=Math.sin(a), c=Math.cos(a); return {x:p.x, y:p.y*c - p.z*s, z:p.y*s + p.z*c};
+    }
+    function project(p){
+      const f=400; const z = 1/(f - p.z); return {x: W/2 + p.x * f * z, y: H/2 + p.y * f * z, s: Math.max(0.2, 1 - p.z/800)};
+    }
+
+    // Icosahedron base (approx). We'll create nested layers and morph them.
+    const baseVerts = [];
+    (function(){
+      const t = (1 + Math.sqrt(5))/2;
+      const raw = [
+        [-1,  t,  0], [ 1,  t,  0], [-1, -t,  0], [ 1, -t,  0],
+        [ 0, -1,  t], [ 0,  1,  t], [ 0, -1, -t], [ 0,  1, -t],
+        [ t,  0, -1], [ t,  0,  1], [-t,  0, -1], [-t,  0,  1]
+      ];
+      for(const r of raw) baseVerts.push({x:r[0]*80,y:r[1]*80,z:r[2]*80});
+    })();
+
+    // Morphing engine parameters
+    const layers = 4; // 4 capas anidadas
+    const clouds = [];
+    for(let L=0; L<layers; L++){
+      clouds.push(baseVerts.map(v=>({x:v.x*(1+L*0.35), y:v.y*(1+L*0.35), z:v.z*(1+L*0.35)})));
+    }
+
+    // Clustering factor mu oscillates harmonically
+    let t0 = performance.now();
+    function muAt(t){
+      // Oscillation driven by Schumann frequency scaled
+      return 0.5 + 0.5 * Math.sin(2*Math.PI*SCHUMANN_HZ * (t/1000) * 0.125);
+    }
+
+    // Render loop with 60fps clamp
+    let lastFrame = 0;
+    function frame(now){
+      const dt = now - lastFrame;
+      if(dt < 1000/60 - 0.5){ // enforce 60fps target (allow slightly early frames)
+        requestAnimationFrame(frame); return;
+      }
+      lastFrame = now;
+      const elapsed = now - t0;
+
+      ctx.clearRect(0,0,W,H);
+      // additive plasma background
+      const grd = ctx.createLinearGradient(0,0,W,H);
+      grd.addColorStop(0, 'rgba(10,0,30,0.15)');
+      grd.addColorStop(1, 'rgba(0,10,60,0.08)');
+      ctx.fillStyle = grd; ctx.fillRect(0,0,W,H);
+
+      const mu = muAt(elapsed);
+      // For each layer, morph vertices using stochastic jitter controlled by mu
+      for(let L=layers-1; L>=0; L--){
+        const verts = clouds[L].map(v=>{
+          // stochastic cloud: jitter magnitude inversely proportional to mu
+          const jitter = (1-mu) * (12 + L*6);
+          const jittered = {
+            x: v.x + (Math.sin(elapsed*0.001*(1+L)) + (Math.random()-0.5))*jitter,
+            y: v.y + (Math.cos(elapsed*0.001*(1+L*1.3)) + (Math.random()-0.5))*jitter,
+            z: v.z + Math.sin(elapsed*0.001*(L+1))*20
+          };
+          // harmonic interpolation toward crystal positions (icosa form)
+          const harmonic = 0.2 + 0.8 * Math.pow(mu, 2);
+          return {
+            x: v.x*(1-harmonic) + jittered.x*harmonic,
+            y: v.y*(1-harmonic) + jittered.y*harmonic,
+            z: v.z*(1-harmonic) + jittered.z*harmonic
+          };
+        }).map(p=> rotateY( rotateX(p, elapsed*0.0003*(L+0.5)), elapsed*0.0006*(L+1)) );
+
+        // draw points
+        for(const p of verts){
+          const pr = project(p);
+          const radius = 3 * (L+1) * pr.s;
+          const alpha = 0.12 + 0.22*pr.s + 0.06*mu;
+          ctx.beginPath(); ctx.fillStyle = `rgba(${30+L*40},${120-20*L},${200-30*L},${alpha})`;
+          ctx.arc(pr.x, pr.y, radius, 0, Math.PI*2); ctx.fill();
+        }
+      }
+
+      // simple FPS overlay
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+
+    // Web Speech API sequencer for the 10 Millennium Problems (Spanish)
+    const millennium = [
+      'P versus NP', 'Conjetura de Hodge', 'Conjetura de Birch y Swinnerton-Dyer',
+      'Existencia y suavidad de Navier-Stokes', 'Hipótesis de Riemann', 'Yang-Mills y brecha de masa',
+      'Conjetura de Poincaré (resuelta, incluida por referencia)', 'Otros problemas suplementarios 1',
+      'Otros problemas suplementarios 2', 'Otros problemas suplementarios 3'
+    ];
+
+    function speakQueue(list, lang='es-ES', perUtteranceTimeout=12000){
+      if(!('speechSynthesis' in window)) return;
+      let i=0;
+      function speakNext(){
+        if(i>=list.length) return;
+        const msg = new SpeechSynthesisUtterance(list[i]);
+        msg.lang = lang; msg.rate = 1; msg.pitch = 1;
+        let firedEnd = false;
+        const onEnd = ()=>{ firedEnd=true; clearTimeout(watchdog); i++; speakNext(); };
+        msg.addEventListener('end', onEnd);
+        msg.addEventListener('error', ()=>{ if(!firedEnd){ firedEnd=true; clearTimeout(watchdog); i++; speakNext(); }});
+        speechSynthesis.speak(msg);
+        // fallback watchdog to prevent hang
+        const watchdog = setTimeout(()=>{
+          try{ speechSynthesis.cancel(); }catch(e){}
+          if(!firedEnd){ firedEnd=true; i++; speakNext(); }
+        }, perUtteranceTimeout);
+      }
+      // start after a short delay to allow user gesture in some browsers
+      setTimeout(speakNext, 500);
+    }
+
+    // Expose a safe starter bound to user gesture
+    window.startMillenniumNarration = ()=> speakQueue(millennium, 'es-ES', 10000);
+
+    // Auto-start narration only on explicit user interaction - protect against autoplay policies
+    document.addEventListener('click', function one(){ document.removeEventListener('click', one); window.startMillenniumNarration(); });
+
+  </script>
+</body>
+</html>

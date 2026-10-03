@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amador-transform"
+version = "1.0.0"
+description = "Librería de optimización topológica basada en flujos incompresibles, Variedades de Kähler y la Transformada de Amador para erradicación del olvido catastrófico."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+  { name = "Francisco Amador Barrios Espinoza" }
+]
+keywords = [
+  "quantum-computing",
+  "topology",
+  "navier-stokes",
+  "optimization",
+  "memory",
+  "kahler",
+  "catastrophic-forgetting",
+  "machine-learning"
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Physics"
+]
+dependencies = [
+  "numpy>=1.24.0",
+  "torch>=2.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/"
+Repository = "https://github.com/"
+Documentation = "https://github.com/"
+Issues = "https://github.com/"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["amador_transform*"]

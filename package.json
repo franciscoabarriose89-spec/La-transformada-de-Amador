@@ -1,0 +1,8 @@
+{
+  "name": "rt-core-millennium-suite",
+  "version": "0.1.0",
+  "description": "RT-Core Exocortex - Morphological clustering demo",
+  "scripts": {
+    "start": "npx http-server . -p 8080"
+  }
+}
