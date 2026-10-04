@@ -17,7 +17,7 @@ from .fluid_dynamics import NavierStokesOptimizer
 from .operators import AmadorTransform
 from .topology import KahlerManifold
 
-__version__ = "1.0.0"
+__version__ = "1.0.7"
 __author__ = "Francisco Amador Barrios Espinoza"
 __all__ = [
     "AmadorTransform",

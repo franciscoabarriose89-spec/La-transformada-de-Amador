@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amador-transform"
-version = "1.0.0"
+version = "1.0.7"
 description = "Librería de optimización topológica basada en flujos incompresibles, Variedades de Kähler y la Transformada de Amador para erradicación del olvido catastrófico."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -37,8 +37,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Physics"
 ]
 dependencies = [
-  "numpy>=1.24.0",
-  "torch>=2.0.0"
+  "numpy>=1.24.0"
 ]
 
 [project.urls]
@@ -52,3 +51,6 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 include = ["amador_transform*"]
+
+[project.optional-dependencies]
+avanzado = ["torch>=2.0.0"]

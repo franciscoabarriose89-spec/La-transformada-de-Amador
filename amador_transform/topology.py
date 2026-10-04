@@ -20,6 +20,13 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 
+try:  # pragma: no cover
+    import torch
+except ImportError:  # pragma: no cover
+    torch = None
+
+TORCH_DISPONIBLE = torch is not None
+
 ArrayLike = Union[np.ndarray, Sequence[Sequence[float]], Sequence[float]]
 
 

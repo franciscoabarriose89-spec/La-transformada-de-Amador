@@ -22,6 +22,8 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     torch = None
 
+TORCH_DISPONIBLE = torch is not None
+
 TensorLike = Union[np.ndarray, Sequence[float], Sequence[Sequence[float]]]
 
 
@@ -43,7 +45,15 @@ class NavierStokesOptimizer:
         density: float = 1.0,
         divergence_tol: float = 1e-8,
     ) -> None:
-        self.params = list(params)
+        params_list = list(params)
+        if not TORCH_DISPONIBLE and any(
+            ((type(param).__module__ or "").startswith("torch")) for param in params_list
+        ):
+            raise RuntimeError(
+                "PyTorch no está disponible. Instala el paquete completo con: pip install amador-transform[avanzado]"
+            )
+
+        self.params = params_list
         self.lr = float(lr)
         self.viscosity = float(viscosity)
         self.density = float(density)
@@ -119,6 +129,11 @@ class NavierStokesOptimizer:
         realiza en una dirección estabilizada que evita la sobreacumulación de
         energía y preserva la geodésica hacia el mínimo de pérdida.
         """
+        if not TORCH_DISPONIBLE:
+            raise RuntimeError(
+                "PyTorch no está disponible. Instala el paquete completo con: pip install amador-transform[avanzado]"
+            )
+
         loss_value: Optional[float] = None
         if closure is not None:
             loss_value = float(closure())

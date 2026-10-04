@@ -24,6 +24,8 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     torch = None
 
+TORCH_DISPONIBLE = torch is not None
+
 TensorLike = Union[np.ndarray, Sequence[float], Sequence[Sequence[float]]]
 
 
@@ -92,6 +94,15 @@ class AmadorTransform:
             ortogonal de la memoria antigua, preservando la forma original del
             input para interoperabilidad con NumPy o PyTorch.
         """
+        if not TORCH_DISPONIBLE and any(
+            ((type(item).__module__ or "").startswith("torch"))
+            for item in (tensors, null_space)
+            if item is not None
+        ):
+            raise RuntimeError(
+                "PyTorch no está disponible. Instala el paquete completo con: pip install amador-transform[avanzado]"
+            )
+
         if null_space is None:
             return tensors
 
